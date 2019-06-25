@@ -22,12 +22,11 @@ struct sStream
 wchar_t randChar()
 {
 	return (wchar_t)(rand() % 93 + 33);
-	//return (wchar_t)(rand() % 0x1EF + 0x00C0); 
 }
 
 void prepareStream(sStream *s, int nWidth)
 {
-	s->fYPos = -1.0f;
+	s->fYPos = 0.0f;
 	s->nXPos = (rand() % nWidth/s->fSize) * s->fSize;
 
 
@@ -40,11 +39,11 @@ void prepareStream(sStream *s, int nWidth)
 	s->fSize = d2(generator);*/
 
 
-	s->fSpeed = rand() % 1000 + 200;
+	s->fSpeed = rand() % 800 + 100;
 	s->fSize = rand() % 70 + 10;
 
 	s->sText.clear();
-	int nStreamLength = rand() % 25 + 1;
+	int nStreamLength = rand() % 6 + 1;
 	for (int i = 0; i < nStreamLength; i++)
 	{
 		s->sText.append(1, randChar());
@@ -75,16 +74,16 @@ int affineMap(int a, int b, int c, int d, int x)
 int main()
 {
 	sf::Font font;
-	if (!font.loadFromFile("matrixFont.ttf"))
+	if (!(font.loadFromFile("matrixFont.ttf")))
 	{
 		return EXIT_FAILURE;
 	}
 
-	int nWidth = 3000;
-	int nHeight = 2000;
-	int nMaxStreams = 100;
+	int nWidth = 1500;
+	int nHeight = 1000;
+	int nMaxStreams = 150;
 	std::list<sStream> listStream;
-	sf::RenderWindow window(sf::VideoMode(nWidth, nHeight), "Testing Text");
+	sf::RenderWindow window(sf::VideoMode(nWidth, nHeight), " SFML Matrix Rain");
 	window.setVerticalSyncEnabled(true);
 	//window.setFramerateLimit(30);
 
@@ -134,8 +133,8 @@ int main()
 		}//end while pollEvent
 
 
-
 		window.clear(sf::Color(0, 10, 0));
+
 		//for each string stream
 		for (auto &s : listStream)
 		{
@@ -154,30 +153,34 @@ int main()
 				{
 					color = sf::Color::White;
 				}
-				else if(s.fSpeed > 1100)
+				else if(s.fSpeed >= 750 && s.fSpeed < 880)
 				{
 					color = sf::Color::Red;
+				}
+				else if (s.fSpeed >= 880)
+				{
+					color = sf::Color::Blue;
+
 				}
 				else
 				{
 					color = sf::Color::Green;
 				}
 
+				color.a = affineMap(10, 80, 1, 255, s.fSize);	//Streams that are 
 
-
-				color.a = affineMap(10, 80, 1, 255, s.fSize);
-
-
-				//int nCharIndex = abs(i - (int)s.fYPos / s.fSize ) % s.sText.size();	//this is so chars are in the same place on the screen, and the head writes new rand chars
-				int nCharIndex = i;	//FOR TESTING, DELETE
+				int nCharIndex = abs(i - (int)s.fYPos / s.fSize ) % s.sText.size();	//this is so chars are in the same place on the screen, and the head writes new rand chars
 
 				sf::Text c;
 				c.setFont(font);
-				//c.setOrigin(0, c.getLocalBounds().height);
+				c.setOrigin(0, c.getLocalBounds().height);
 				c.setString(s.sText[nCharIndex]);
 				c.setCharacterSize(s.fSize);
 
-				c.setPosition((float)s.nXPos, s.fYPos - (float)(i*s.fSize));
+				int row = (s.fYPos - (float)i*s.fSize)/ s.fSize;
+				float pos = row * s.fSize;
+				c.setPosition((float)s.nXPos, pos);
+
 				c.setFillColor(color);
 				
 				window.draw(c);
