@@ -75,13 +75,13 @@ int affineMap(int a, int b, int c, int d, int x)
 int main()
 {
 	sf::Font font;
-	if (!font.loadFromFile("matrixFont.otf"))
+	if (!font.loadFromFile("matrixFont.ttf"))
 	{
 		return EXIT_FAILURE;
 	}
 
-	int nWidth = 2000;
-	int nHeight = 1000;
+	int nWidth = 3000;
+	int nHeight = 2000;
 	int nMaxStreams = 100;
 	std::list<sStream> listStream;
 	sf::RenderWindow window(sf::VideoMode(nWidth, nHeight), "Testing Text");
@@ -89,6 +89,7 @@ int main()
 	//window.setFramerateLimit(30);
 
 	sf::Clock clock;
+	sf::Clock totalClock;
 
 	//populate listStream
 	for (int i = 0; i < nMaxStreams; i++)
@@ -103,9 +104,10 @@ int main()
 	while (window.isOpen())
 	{
 		sf::Event evnt;
+		sf::Time totalTime = totalClock.getElapsedTime();
 		sf::Time elapsedTime = clock.restart();
 		float fps = 1.f / (elapsedTime.asSeconds());
-		window.setTitle("FPS: " + std::to_string(fps));
+		window.setTitle("FPS: " + std::to_string((int)fps) + ", Elapsed Time: " + std::to_string(totalTime.asSeconds()));
 
 		while (window.pollEvent(evnt))
 		{
@@ -139,6 +141,9 @@ int main()
 		{
 			s.fYPos += s.fSpeed * elapsedTime.asSeconds();
 
+
+
+
 			//for each char
 			for (int i = 0; i < s.sText.size(); i++)
 			{
@@ -147,7 +152,6 @@ int main()
 				sf::Color color;
 				if (i == 0)
 				{
-					//white
 					color = sf::Color::White;
 				}
 				else if(s.fSpeed > 1100)
@@ -158,6 +162,9 @@ int main()
 				{
 					color = sf::Color::Green;
 				}
+
+
+
 				color.a = affineMap(10, 80, 1, 255, s.fSize);
 
 
