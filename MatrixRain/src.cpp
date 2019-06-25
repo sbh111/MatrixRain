@@ -3,6 +3,9 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <list>
+#include <random>
+#include <chrono>
+
 
 
 struct sStream
@@ -24,28 +27,46 @@ wchar_t randChar()
 
 void prepareStream(sStream *s, int nWidth)
 {
-	s->fYPos = 0.0f;
-	s->nXPos = rand() % nWidth;
+	s->fYPos = -1.0f;
+	s->nXPos = (rand() % nWidth/s->fSize) * s->fSize;
 
-	s->fSpeed = rand() % 1000 + 200;	//TODO: replace this with binomial distribution generator
-	s->fSize = rand() % 100 + 10;		//TODO: map speed bw 10 and 100 and assign to size
 
+	//IDK why these are not working
+	/*unsigned seed = rand();
+	std::default_random_engine generator();	
+	std::normal_distribution<float> d1(500.f, 100.f);
+	std::normal_distribution<float> d2(35.f, 15.f);
+	s->fSpeed = d1(generator);
+	s->fSize = d2(generator);*/
+
+
+	s->fSpeed = rand() % 1000 + 200;
+	s->fSize = rand() % 70 + 10;
 
 	s->sText.clear();
-	int nStreamLength = rand() % 20 + 5;
+	int nStreamLength = rand() % 25 + 1;
 	for (int i = 0; i < nStreamLength; i++)
 	{
 		s->sText.append(1, randChar());
 	}
 }
 
-void updateStream(sStream *s)
+void updateStream(sStream *str)
 {
 	if (rand() >= (float)RAND_MAX*.75)	//there's got to be a better way to do this
 	{
-		int randIndex = rand() % s->sText.size();
-		s->sText[randIndex] = randChar();
+		int randIndex = rand() % str->sText.size();
+		str->sText[randIndex] = randChar();
 	}
+}
+
+int affineMap(int a, int b, int c, int d, int x)
+{
+	//transform x from range [a, b] to y in range [c, d]
+	int y = ((x - a) * (d - c) / (b - a)) + c;
+	return y;
+
+
 }
 
 
@@ -54,18 +75,18 @@ void updateStream(sStream *s)
 int main()
 {
 	sf::Font font;
-	if (!font.loadFromFile("sansation.ttf"))
+	if (!font.loadFromFile("matrixFont.otf"))
 	{
 		return EXIT_FAILURE;
 	}
 
-	int nWidth = 1000;
+	int nWidth = 2000;
 	int nHeight = 1000;
-	float fSpriteSize = 50.f;
-	int nMaxStreams = 10;
+	int nMaxStreams = 100;
 	std::list<sStream> listStream;
 	sf::RenderWindow window(sf::VideoMode(nWidth, nHeight), "Testing Text");
 	window.setVerticalSyncEnabled(true);
+	//window.setFramerateLimit(30);
 
 	sf::Clock clock;
 
@@ -112,8 +133,7 @@ int main()
 
 
 
-		window.clear(sf::Color::Black);
-
+		window.clear(sf::Color(0, 10, 0));
 		//for each string stream
 		for (auto &s : listStream)
 		{
@@ -124,30 +144,35 @@ int main()
 			{
 
 				//TODO: map color to size and maybe speed
-				sf::Color color = s.fSpeed < 120.0 ? sf::Color(0, 100, 0)/*dark green*/ : sf::Color(0, 128, 0)/*green*/;
+				sf::Color color;
 				if (i == 0)
 				{
 					//white
 					color = sf::Color::White;
 				}
-				else if (i <= 3)
+				else if(s.fSpeed > 1100)
 				{
-					//grey
-					color = sf::Color(128, 128, 128);
+					color = sf::Color::Red;
 				}
+				else
+				{
+					color = sf::Color::Green;
+				}
+				color.a = affineMap(10, 80, 1, 255, s.fSize);
 
 
-				//int nCharIndex = abs(i - (int)s.fYPos / nSpriteSize ) % s.sText.size();	//this is so chars are in the same place on the screen, and the head writes new rand chars
+				//int nCharIndex = abs(i - (int)s.fYPos / s.fSize ) % s.sText.size();	//this is so chars are in the same place on the screen, and the head writes new rand chars
 				int nCharIndex = i;	//FOR TESTING, DELETE
 
 				sf::Text c;
 				c.setFont(font);
-				c.setOrigin(0, c.getLocalBounds().height);
+				//c.setOrigin(0, c.getLocalBounds().height);
 				c.setString(s.sText[nCharIndex]);
 				c.setCharacterSize(s.fSize);
 
 				c.setPosition((float)s.nXPos, s.fYPos - (float)(i*s.fSize));
 				c.setFillColor(color);
+				
 				window.draw(c);
 			}
 
@@ -156,7 +181,10 @@ int main()
 			if (s.fYPos - s.sText.size()*s.fSize  >= nHeight)
 			{
 				prepareStream(&s, nWidth);
-				listStream.sort([](const sStream &lhs, const sStream &rhs) {return lhs.fSize < rhs.fSize; });
+
+				//apparently this sorting routine is to slow, and causes flickering
+				//i probably dont need it anyway
+				//listStream.sort([](const sStream &lhs, const sStream &rhs) {return lhs.fSize < rhs.fSize; });
 			}
 
 		}

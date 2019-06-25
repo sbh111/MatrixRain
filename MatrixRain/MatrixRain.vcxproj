@@ -123,8 +123,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Source.cpp" />
     <ClCompile Include="src.cpp" />
   </ItemGroup>
   <ItemGroup>
