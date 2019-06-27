@@ -1,6 +1,7 @@
 
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <list>
 #include <random>
@@ -31,8 +32,7 @@ void prepareStream(sStream *s, int nWidth)
 
 
 	//IDK why these are not working
-	/*unsigned seed = rand();
-	std::default_random_engine generator();	
+	/*std::default_random_engine generator;	
 	std::normal_distribution<float> d1(500.f, 100.f);
 	std::normal_distribution<float> d2(35.f, 15.f);
 	s->fSpeed = d1(generator);
@@ -74,7 +74,8 @@ int affineMap(int a, int b, int c, int d, int x)
 int main()
 {
 	sf::Font font;
-	if (!(font.loadFromFile("matrixFont.ttf")))
+	sf::Music music;
+	if (!(font.loadFromFile("matrixFont.ttf") && music.openFromFile("8-Bit-Mayhem.ogg")))
 	{
 		return EXIT_FAILURE;
 	}
@@ -90,6 +91,8 @@ int main()
 	sf::Clock clock;
 	sf::Clock totalClock;
 
+
+
 	//populate listStream
 	for (int i = 0; i < nMaxStreams; i++)
 	{
@@ -99,7 +102,8 @@ int main()
 	}
 	listStream.sort([](const sStream &lhs, const sStream &rhs) {return lhs.fSize < rhs.fSize; });
 
-
+	music.play();
+	music.setLoop(true);
 	while (window.isOpen())
 	{
 		sf::Event evnt;
@@ -133,7 +137,7 @@ int main()
 		}//end while pollEvent
 
 
-		window.clear(sf::Color(0, 10, 0));
+		window.clear(sf::Color(0, 20, 0));
 
 		//for each string stream
 		for (auto &s : listStream)
@@ -200,7 +204,12 @@ int main()
 		}
 		window.display();
 
-	}//end gameLoop
+	}//end gameLoop, window is closed
+
+	music.stop();
+	std::cout << "Exiting..." << std::endl;
+
+
 
 	return 0;
 }
